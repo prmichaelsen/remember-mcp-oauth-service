@@ -1,0 +1,34 @@
+project:
+  name: remember-mcp-oauth-service
+  version: 0.1.0
+  started: 2026-03-14
+  status: in_progress
+  description: |
+    Remote MCP server wrapping remember-mcp with API token → OAuth exchange authentication.
+    Users connect with just an API token — all infra secrets held server-side.
+
+milestones: []
+
+tasks: {}
+
+documentation:
+  design_documents: 0
+  milestone_documents: 0
+  pattern_documents: 0
+  task_documents: 0
+
+progress:
+  planning: 0
+  implementation: 0
+  overall: 0
+
+recent_work: []
+
+next_steps:
+  - Define project requirements in agent/design/requirements.md
+  - Plan milestones and tasks with @acp.plan
+  - Start development with @acp.proceed
+
+notes: []
+
+current_blockers: []
