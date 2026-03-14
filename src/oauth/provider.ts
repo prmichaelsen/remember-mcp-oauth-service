@@ -1,31 +1,33 @@
 import { ProxyOAuthServerProvider } from '@modelcontextprotocol/sdk/server/auth/providers/proxyProvider.js';
 import type { OAuthClientInformationFull } from '@modelcontextprotocol/sdk/shared/auth.js';
 import type { AuthInfo } from '@modelcontextprotocol/sdk/server/auth/types.js';
+import type { OAuthRegisteredClientsStore } from '@modelcontextprotocol/sdk/server/auth/clients.js';
+import { randomUUID } from 'node:crypto';
 import jwt from 'jsonwebtoken';
 
 const AGENTBASE_URL = process.env.AGENTBASE_URL || 'https://agentbase.me';
 
 /**
- * Known OAuth clients. In production these would come from a database,
- * but for MVP we hardcode the remember-mcp-oauth-service client
- * matching what's registered in agentbase.me.
+ * In-memory client store with dynamic registration support.
+ * Claude CLI registers itself dynamically before starting the OAuth flow.
  */
-const KNOWN_CLIENTS = new Map<string, OAuthClientInformationFull>();
+const clients = new Map<string, OAuthClientInformationFull>();
 
-// Register known clients — redirect URIs must match what's configured in agentbase.me
-KNOWN_CLIENTS.set('remember-mcp-oauth-service', {
-  client_id: 'remember-mcp-oauth-service',
-  client_name: 'Remember MCP',
-  redirect_uris: [
-    'http://localhost:6274/oauth/callback',
-    'http://127.0.0.1:6274/oauth/callback',
-    'http://localhost:6275/oauth/callback',
-    'http://127.0.0.1:6275/oauth/callback',
-  ],
-  token_endpoint_auth_method: 'none',
-  grant_types: ['authorization_code', 'refresh_token'],
-  response_types: ['code'],
-} as OAuthClientInformationFull);
+const clientsStore: OAuthRegisteredClientsStore = {
+  async getClient(clientId: string) {
+    return clients.get(clientId);
+  },
+  async registerClient(client) {
+    const clientId = randomUUID();
+    const fullClient: OAuthClientInformationFull = {
+      ...client,
+      client_id: clientId,
+      client_id_issued_at: Math.floor(Date.now() / 1000),
+    };
+    clients.set(clientId, fullClient);
+    return fullClient;
+  },
+};
 
 /**
  * Verify a JWT access token issued by agentbase.me.
@@ -33,8 +35,6 @@ KNOWN_CLIENTS.set('remember-mcp-oauth-service', {
  */
 async function verifyAccessToken(token: string): Promise<AuthInfo> {
   try {
-    // Decode the JWT — agentbase.me signs with PLATFORM_SERVICE_TOKEN
-    // but we trust the token since it came through our own OAuth flow
     const decoded = jwt.decode(token) as Record<string, unknown> | null;
 
     if (!decoded || typeof decoded.sub !== 'string') {
@@ -43,7 +43,7 @@ async function verifyAccessToken(token: string): Promise<AuthInfo> {
 
     return {
       token,
-      clientId: 'remember-mcp-oauth-service',
+      clientId: 'dynamic',
       scopes: [],
       expiresAt: typeof decoded.exp === 'number' ? decoded.exp : undefined,
       extra: { userId: decoded.sub },
@@ -51,13 +51,6 @@ async function verifyAccessToken(token: string): Promise<AuthInfo> {
   } catch {
     throw new Error('Invalid or expired access token');
   }
-}
-
-/**
- * Look up a registered OAuth client by ID.
- */
-async function getClient(clientId: string): Promise<OAuthClientInformationFull | undefined> {
-  return KNOWN_CLIENTS.get(clientId);
 }
 
 /**
@@ -73,12 +66,19 @@ async function getClient(clientId: string): Promise<OAuthClientInformationFull |
  * This service just proxies to those endpoints and verifies the resulting tokens.
  */
 export function createOAuthProvider(): ProxyOAuthServerProvider {
-  return new ProxyOAuthServerProvider({
+  const provider = new ProxyOAuthServerProvider({
     endpoints: {
       authorizationUrl: `${AGENTBASE_URL}/oauth/authorize`,
       tokenUrl: `${AGENTBASE_URL}/api/oauth/token`,
     },
     verifyAccessToken,
-    getClient,
+    getClient: (clientId: string) => clientsStore.getClient(clientId) as Promise<OAuthClientInformationFull | undefined>,
   });
+
+  // Override clientsStore to add dynamic registration support
+  Object.defineProperty(provider, 'clientsStore', {
+    get: () => clientsStore,
+  });
+
+  return provider;
 }
