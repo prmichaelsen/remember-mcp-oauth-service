@@ -8,16 +8,17 @@ project:
     Users connect via Claude CLI with Streamable HTTP — all infra secrets held server-side.
 
 current_milestone: M1
-current_task: task-5
+current_task: null
 
 milestones:
   - id: M1
     name: OAuth MCP Server MVP
-    status: in_progress
+    status: completed
+    completed_date: 2026-03-14
     file: agent/milestones/milestone-1-oauth-mcp-server-mvp.md
     estimated_weeks: 1-2
     tasks_total: 5
-    tasks_completed: 4
+    tasks_completed: 5
 
 tasks:
   milestone_1:
@@ -59,7 +60,8 @@ tasks:
 
     - id: 5
       name: E2E Testing with Claude CLI
-      status: not_started
+      status: completed
+      completed_date: 2026-03-14
       estimated_hours: 2-3
       file: agent/tasks/milestone-1-oauth-mcp-server-mvp/task-5-e2e-testing.md
       dependencies: [task-3, task-4]
@@ -73,8 +75,8 @@ documentation:
 
 progress:
   planning: 100
-  implementation: 80
-  overall: 80
+  implementation: 100
+  overall: 100
 
 recent_work:
   - date: 2026-03-14
