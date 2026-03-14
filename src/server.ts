@@ -13,6 +13,8 @@ const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 
 export async function startServer(): Promise<void> {
   const app = express();
+  // Trust Cloud Run's load balancer for X-Forwarded-For (required by express-rate-limit)
+  app.set('trust proxy', true);
   const provider = createOAuthProvider();
 
   // OAuth endpoints (metadata, authorize, token, registration)
