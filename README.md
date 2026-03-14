@@ -73,33 +73,18 @@ gcloud builds submit --config cloudbuild.yaml --substitutions=COMMIT_SHA=$(git r
 
 ## Self-Hosting / Forking
 
-This repo can be forked and adapted to serve any MCP server behind any OAuth provider. The architecture has three pluggable pieces:
+This repo can be forked to self-host your own remember-mcp instance behind your own OAuth provider. The MCP server (`@prmichaelsen/remember-mcp`) stays the same — you just swap the auth platform and infrastructure.
 
-### 1. Replace the MCP server factory
-
-In `src/server.ts`, swap the `createServer` import for your own MCP server factory:
-
-```typescript
-// Before (remember-mcp)
-import { createServer as createRememberServer } from '@prmichaelsen/remember-mcp/factory';
-
-// After (your MCP server)
-import { createServer } from './my-mcp-server.js';
-```
-
-Your factory must match the signature `(accessToken: string, userId: string) => Server | Promise<Server>`.
-
-### 2. Replace the OAuth provider
+### 1. Replace the OAuth provider
 
 In `src/oauth/provider.ts`, update the upstream OAuth endpoints to point to your own auth platform:
 
 ```typescript
-const AGENTBASE_URL = process.env.AGENTBASE_URL || 'https://your-auth-platform.com';
+const AUTH_URL = process.env.AUTH_URL || 'https://your-auth-platform.com';
 
-// These must be standard OAuth 2.0 endpoints on your platform:
 endpoints: {
-  authorizationUrl: `${AGENTBASE_URL}/oauth/authorize`,  // Authorization code flow
-  tokenUrl: `${AGENTBASE_URL}/api/oauth/token`,           // Token exchange
+  authorizationUrl: `${AUTH_URL}/oauth/authorize`,
+  tokenUrl: `${AUTH_URL}/api/oauth/token`,
 }
 ```
 
@@ -109,7 +94,7 @@ Your auth platform needs to support:
 - `POST /register` — dynamic client registration (RFC 7591)
 - Access tokens must be JWTs with a `sub` claim containing the user ID
 
-### 3. Update the token verifier
+### 2. Update the token verifier
 
 In `src/oauth/provider.ts`, update `verifyAccessToken` to validate tokens from your auth platform:
 
@@ -121,9 +106,9 @@ async function verifyAccessToken(token: string): Promise<AuthInfo> {
 }
 ```
 
-### 4. Deploy
+### 3. Deploy
 
-Update `.env.example` and `cloudbuild.yaml` with your infrastructure secrets and deploy to your preferred platform.
+Update `.env.example` and `cloudbuild.yaml` with your own Firebase, Weaviate, and OpenAI credentials, then deploy to your preferred platform.
 
 ## Appendix
 
