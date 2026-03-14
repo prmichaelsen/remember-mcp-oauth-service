@@ -71,6 +71,60 @@ gcloud builds submit --config cloudbuild.yaml --substitutions=COMMIT_SHA=$(git r
 - **MCP**: `@prmichaelsen/remember-mcp` server factory for per-user instances
 - **Hosting**: Cloud Run (GCP)
 
+## Self-Hosting / Forking
+
+This repo can be forked and adapted to serve any MCP server behind any OAuth provider. The architecture has three pluggable pieces:
+
+### 1. Replace the MCP server factory
+
+In `src/server.ts`, swap the `createServer` import for your own MCP server factory:
+
+```typescript
+// Before (remember-mcp)
+import { createServer as createRememberServer } from '@prmichaelsen/remember-mcp/factory';
+
+// After (your MCP server)
+import { createServer } from './my-mcp-server.js';
+```
+
+Your factory must match the signature `(accessToken: string, userId: string) => Server | Promise<Server>`.
+
+### 2. Replace the OAuth provider
+
+In `src/oauth/provider.ts`, update the upstream OAuth endpoints to point to your own auth platform:
+
+```typescript
+const AGENTBASE_URL = process.env.AGENTBASE_URL || 'https://your-auth-platform.com';
+
+// These must be standard OAuth 2.0 endpoints on your platform:
+endpoints: {
+  authorizationUrl: `${AGENTBASE_URL}/oauth/authorize`,  // Authorization code flow
+  tokenUrl: `${AGENTBASE_URL}/api/oauth/token`,           // Token exchange
+}
+```
+
+Your auth platform needs to support:
+- `GET /oauth/authorize` — authorization code flow with PKCE
+- `POST /api/oauth/token` — `grant_type=authorization_code` and `grant_type=refresh_token`
+- `POST /register` — dynamic client registration (RFC 7591)
+- Access tokens must be JWTs with a `sub` claim containing the user ID
+
+### 3. Update the token verifier
+
+In `src/oauth/provider.ts`, update `verifyAccessToken` to validate tokens from your auth platform:
+
+```typescript
+async function verifyAccessToken(token: string): Promise<AuthInfo> {
+  // Decode/verify the JWT from your auth platform
+  // Extract the user ID from the claims
+  // Return AuthInfo with userId in extra
+}
+```
+
+### 4. Deploy
+
+Update `.env.example` and `cloudbuild.yaml` with your infrastructure secrets and deploy to your preferred platform.
+
 ## Appendix
 
 This entire project — requirements, design, implementation, deployment, custom domain, and E2E verification — was completed in a single 4.5-hour session on March 14, 2026 by one developer paired with Claude Code (Opus 4.6). The core server is ~150 lines of TypeScript across 3 files.
