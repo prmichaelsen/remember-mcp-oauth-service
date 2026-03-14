@@ -1,0 +1,27 @@
+# agent/index/local.main.yaml
+# Key file index for project-local files
+
+local:
+  index:
+    - path: agent/design/requirements.md
+      weight: 1.0
+      kind: requirements
+      description: |
+        Core project requirements defining goals, constraints,
+        and success criteria for the application.
+      rationale: |
+        Must be read before any design or task creation to ensure
+        alignment with project goals.
+      applies: acp.init, acp.design-create, acp.task-create, acp.plan, acp.proceed
+
+    - path: agent/design/local.oauth-mcp-server.md
+      weight: 0.8
+      kind: design
+      description: |
+        Architecture design for the OAuth MCP server. Defines OAuth flow
+        with agentbase.me, Streamable HTTP transport, remember-mcp factory
+        integration, and Cloud Run deployment.
+      rationale: |
+        Primary design document. Must be read before implementation tasks
+        to understand the OAuth + MCP SDK architecture decisions.
+      applies: acp.proceed, acp.task-create, acp.plan
