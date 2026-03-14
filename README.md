@@ -1,77 +1,79 @@
 # remember-mcp-oauth-service
 
-Remote MCP server wrapping remember-mcp with API token → OAuth exchange authentication
-
-> Built with [Agent Context Protocol](https://github.com/prmichaelsen/agent-context-protocol)
+Remote MCP server wrapping remember-mcp with OAuth 2.0 authentication via agentbase.me
 
 ## Overview
 
-This service wraps `@prmichaelsen/remember-mcp`'s server factory with API token authentication. Users connect with just an API token — all infra secrets (Weaviate, Firebase, OpenAI) are held server-side.
+This service exposes all 29 remember-mcp tools over Streamable HTTP with a full OAuth 2.0 authorization code flow (PKCE). Users connect from Claude CLI, authenticate through agentbase.me in their browser, and use remember-mcp tools — no local secrets needed.
 
 ## How It Works
 
 ```
-Claude Code → remember-mcp-oauth-service → remember-mcp factory
-                     ↓
-         API token → JWT exchange
-         (via agentbase.me /api/oauth/token)
+Claude CLI (OAuth Client)
+    │
+    ├─ POST /register          → Dynamic client registration
+    ├─ GET  /authorize         → Redirect to agentbase.me login
+    │       └─ User logs in    → Redirect back with auth code
+    ├─ POST /token             → Exchange code for access/refresh tokens
+    └─ POST /mcp               → Authenticated MCP requests
+        └─ remember-mcp tools  → Firestore / Weaviate
 ```
 
-1. User sends MCP request with `Authorization: Bearer ab_live-sk_...`
-2. Server exchanges API token for JWT via OAuth endpoint
-3. Server extracts userId from JWT
-4. Server calls `createServer(jwt, userId)` from remember-mcp factory
-5. Tool calls are proxied through the remote server
+1. Claude CLI registers as an OAuth client (`POST /register`)
+2. Claude CLI redirects user to agentbase.me for login
+3. User authenticates in browser
+4. Claude CLI exchanges auth code for access token (`POST /token`)
+5. Claude CLI sends MCP requests with Bearer token (`POST /mcp`)
+6. Server creates a remember-mcp instance for the authenticated user
 
-## Client Configuration
+## Setup
 
-```json
-{
-  "mcpServers": {
-    "remember": {
-      "url": "https://remember.agentbase.me/mcp",
-      "headers": {
-        "Authorization": "Bearer ab_live-sk_your_token"
-      }
-    }
-  }
-}
+### Add the server to Claude CLI
+
+```bash
+claude mcp add --transport http -s user remember-mcp https://remember-mcp-oauth-service-dit6gawkbq-uc.a.run.app/mcp
 ```
+
+### Authenticate
+
+1. Start Claude CLI
+2. Run `/mcp`
+3. Select `remember-mcp` and click "Authenticate"
+4. Log in with your agentbase.me account in the browser
+5. Once authenticated, all remember-mcp tools are available
+
+### Verify
+
+Ask Claude to search your memories or create a new one. The tools work transparently through the remote server.
 
 ## Development
 
-This project uses the Agent Context Protocol for development:
-
-- `@acp.init` - Initialize agent context
-- `@acp.plan` - Plan milestones and tasks
-- `@acp.proceed` - Continue with next task
-- `@acp.status` - Check project status
-
-See [AGENT.md](./AGENT.md) for complete ACP documentation.
-
-## Project Structure
-
-```
-remember-mcp-oauth-service/
-├── AGENT.md              # ACP methodology
-├── agent/                # ACP directory
-│   ├── design/          # Design documents
-│   ├── milestones/      # Project milestones
-│   ├── tasks/           # Task breakdown
-│   ├── patterns/        # Architectural patterns
-│   └── progress.yaml    # Progress tracking
-└── src/                 # Source code
+```bash
+npm install
+npm run build
+npm start          # Requires env vars (see .env.example)
 ```
 
-## Getting Started
+### Environment Variables
 
-1. Initialize context: `@acp.init`
-2. Plan your project: `@acp.plan`
-3. Start building: `@acp.proceed`
+See [.env.example](.env.example) for required configuration. All infrastructure secrets (Firebase, Weaviate, OpenAI) are held server-side.
+
+### Deploy
+
+```bash
+gcloud builds submit --config cloudbuild.yaml --substitutions=COMMIT_SHA=$(git rev-parse HEAD) .
+```
+
+## Architecture
+
+- **Transport**: Streamable HTTP via MCP SDK's `StreamableHTTPServerTransport`
+- **Auth**: `ProxyOAuthServerProvider` proxying to agentbase.me's OAuth endpoints
+- **MCP**: `@prmichaelsen/remember-mcp` server factory for per-user instances
+- **Hosting**: Cloud Run (GCP)
 
 ## License
 
-MIT
+ISC
 
 ## Author
 
