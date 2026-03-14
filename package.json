@@ -1,0 +1,29 @@
+{
+  "name": "@prmichaelsen/remember-mcp-oauth-service",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Remote MCP server wrapping remember-mcp with OAuth 2.0 authentication via agentbase.me",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "private": true,
+  "license": "ISC",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "@prmichaelsen/remember-mcp": "^3.19.3",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^25.5.0",
+    "typescript": "^5.9.3"
+  }
+}

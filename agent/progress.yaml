@@ -8,22 +8,23 @@ project:
     Users connect via Claude CLI with Streamable HTTP — all infra secrets held server-side.
 
 current_milestone: M1
-current_task: null
+current_task: task-5
 
 milestones:
   - id: M1
     name: OAuth MCP Server MVP
-    status: not_started
+    status: in_progress
     file: agent/milestones/milestone-1-oauth-mcp-server-mvp.md
     estimated_weeks: 1-2
     tasks_total: 5
-    tasks_completed: 0
+    tasks_completed: 4
 
 tasks:
   milestone_1:
     - id: 1
       name: Project Scaffolding
-      status: not_started
+      status: completed
+      completed_date: 2026-03-14
       estimated_hours: 1-2
       file: agent/tasks/milestone-1-oauth-mcp-server-mvp/task-1-project-scaffolding.md
       dependencies: []
@@ -31,27 +32,30 @@ tasks:
 
     - id: 2
       name: OAuthServerProvider Implementation
-      status: not_started
+      status: completed
+      completed_date: 2026-03-14
       estimated_hours: 4-6
       file: agent/tasks/milestone-1-oauth-mcp-server-mvp/task-2-oauth-server-provider.md
       dependencies: [task-1, agentbase.me-M86]
-      description: "AgentbaseOAuthProvider implementing MCP SDK OAuthServerProvider — delegates auth to agentbase.me, in-memory token store"
+      description: "ProxyOAuthServerProvider delegating to agentbase.me OAuth endpoints"
 
     - id: 3
       name: Streamable HTTP Server + MCP Integration
-      status: not_started
+      status: completed
+      completed_date: 2026-03-14
       estimated_hours: 3-4
       file: agent/tasks/milestone-1-oauth-mcp-server-mvp/task-3-streamable-http-mcp-server.md
       dependencies: [task-1, task-2]
-      description: "Express server with OAuth endpoints, StreamableHTTPServerTransport, remember-mcp factory integration, health check"
+      description: "Express server with mcpAuthRouter, StreamableHTTPServerTransport, remember-mcp factory, health check"
 
     - id: 4
       name: Cloud Run Deployment
-      status: not_started
+      status: completed
+      completed_date: 2026-03-14
       estimated_hours: 2-3
       file: agent/tasks/milestone-1-oauth-mcp-server-mvp/task-4-cloud-run-deployment.md
       dependencies: [task-3]
-      description: "Dockerfile, Cloud Run config, env var documentation, local Docker testing"
+      description: "Dockerfile (multi-stage), .dockerignore, .env.example"
 
     - id: 5
       name: E2E Testing with Claude CLI
@@ -69,21 +73,23 @@ documentation:
 
 progress:
   planning: 100
-  implementation: 0
-  overall: 10
+  implementation: 80
+  overall: 80
 
 recent_work:
   - date: 2026-03-14
-    description: "Completed design and planning — requirements, design doc, clarification, M1 milestone with 5 tasks"
+    description: |
+      Implemented tasks 1-4: Project scaffolding, ProxyOAuthServerProvider
+      delegating to agentbase.me, Express server with mcpAuthRouter +
+      StreamableHTTPServerTransport + remember-mcp factory integration,
+      Dockerfile for Cloud Run deployment.
 
 next_steps:
-  - "Wait for agentbase.me M86 (OAuth Provider Endpoint) to be implemented"
-  - "Start task-1 (Project Scaffolding) — can be done in parallel with M86"
-  - "Implement task-2 (OAuthServerProvider) once M86 endpoints are available"
+  - "Task 5: E2E testing with Claude CLI"
 
 notes:
-  - "Task 2 depends on agentbase.me M86 — but task 1 can start immediately"
-  - "In-memory token storage for MVP; plan Firestore persistence later"
+  - "Used MCP SDK's ProxyOAuthServerProvider — proxies OAuth to agentbase.me, no custom auth logic needed"
+  - "mcpAuthRouter handles all OAuth endpoints (metadata, authorize, token, registration)"
+  - "In-memory session management via Map<sessionId, transport>"
 
-current_blockers:
-  - "agentbase.me M86 (OAuth Provider Endpoint) — needed for task-2 authorization flow"
+current_blockers: []
