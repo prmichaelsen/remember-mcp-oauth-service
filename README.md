@@ -71,6 +71,10 @@ gcloud builds submit --config cloudbuild.yaml --substitutions=COMMIT_SHA=$(git r
 - **MCP**: `@prmichaelsen/remember-mcp` server factory for per-user instances
 - **Hosting**: Cloud Run (GCP)
 
+## Appendix
+
+This entire project — requirements, design, implementation, deployment, custom domain, and E2E verification — was completed in a single 4.5-hour session on March 14, 2026 by one developer paired with Claude Code (Opus 4.6). The core server is ~150 lines of TypeScript across 3 files.
+
 ## License
 
 ISC
