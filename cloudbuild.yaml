@@ -35,7 +35,7 @@ steps:
       - '--memory=512Mi'
       - '--cpu=1'
       - '--timeout=300s'
-      - '--set-env-vars=NODE_ENV=production,AGENTBASE_URL=https://agentbase.me'
+      - '--set-env-vars=NODE_ENV=production,AGENTBASE_URL=https://agentbase.me,BASE_URL=https://remember-mcp-oauth-service-dit6gawkbq-uc.a.run.app'
       - '--update-secrets=WEAVIATE_REST_URL=remember-weaviate-rest-url:latest,WEAVIATE_API_KEY=remember-weaviate-api-key:latest,FIREBASE_ADMIN_SERVICE_ACCOUNT_KEY=remember-firebase-admin-service-account-key:latest,FIREBASE_PROJECT_ID=remember-firebase-project-id:latest,OPENAI_EMBEDDINGS_API_KEY=remember-openai-embeddings-api-key:latest'
 
 images:
