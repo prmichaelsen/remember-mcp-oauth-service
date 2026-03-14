@@ -20,6 +20,7 @@ export async function startServer(): Promise<void> {
   app.use(mcpAuthRouter({
     provider,
     issuerUrl: new URL(BASE_URL),
+    resourceServerUrl: new URL(`${BASE_URL}/mcp`),
     serviceDocumentationUrl: new URL('https://github.com/prmichaelsen/remember-mcp-oauth-service'),
   }));
 
