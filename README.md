@@ -31,7 +31,7 @@ Claude CLI (OAuth Client)
 ### Add the server to Claude CLI
 
 ```bash
-claude mcp add --transport http -s user remember-mcp https://remember-mcp-oauth-service-dit6gawkbq-uc.a.run.app/mcp
+claude mcp add --transport http -s user remember-mcp https://remember-mcp.agentbase.me/mcp
 ```
 
 ### Authenticate
