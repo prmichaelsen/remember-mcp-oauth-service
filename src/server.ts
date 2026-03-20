@@ -56,7 +56,9 @@ export async function startServer(): Promise<void> {
       });
 
       // Create remember-mcp server instance for this user
-      const mcpServer = await createRememberServer(authInfo.token, userId);
+      const mcpServer = await createRememberServer(authInfo.token, userId, {
+        internal_type: 'agent',
+      });
       await mcpServer.connect(transport);
 
       transports.set(newSessionId, transport);

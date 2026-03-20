@@ -1,6 +1,6 @@
 {
   "name": "@prmichaelsen/remember-mcp-oauth-service",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "Remote MCP server wrapping remember-mcp with OAuth 2.0 authentication via agentbase.me",
   "main": "dist/index.js",

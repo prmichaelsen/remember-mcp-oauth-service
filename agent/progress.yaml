@@ -1,14 +1,14 @@
 project:
   name: remember-mcp-oauth-service
-  version: 0.1.0
+  version: 0.2.0
   started: 2026-03-14
   status: in_progress
   description: |
     Remote MCP server wrapping remember-mcp with OAuth 2.0 authentication via agentbase.me.
     Users connect via Claude CLI with Streamable HTTP — all infra secrets held server-side.
 
-current_milestone: M1
-current_task: null
+current_milestone: M2
+current_task: task-6
 
 milestones:
   - id: M1
@@ -19,6 +19,15 @@ milestones:
     estimated_weeks: 1-2
     tasks_total: 5
     tasks_completed: 5
+
+  - id: M2
+    name: Agent Internal Context
+    status: completed
+    completed_date: 2026-03-20
+    file: agent/milestones/milestone-2-agent-internal-context.md
+    estimated_weeks: 0.1
+    tasks_total: 1
+    tasks_completed: 1
 
 tasks:
   milestone_1:
@@ -67,11 +76,23 @@ tasks:
       dependencies: [task-3, task-4]
       description: "Full flow: Claude CLI OAuth discovery → login → tool invocation → token refresh → multi-tenant isolation"
 
+  milestone_2:
+    - id: 6
+      name: Pass internal_type agent to server factory
+      status: completed
+      started: 2026-03-20T00:00:00Z
+      completed_date: 2026-03-20T00:00:00Z
+      actual_hours: 0.1
+      estimated_hours: 0.5
+      file: agent/tasks/milestone-2-agent-internal-context/task-6-pass-internal-type-agent.md
+      dependencies: []
+      description: "Pass { internal_type: 'agent' } to createRememberServer() so all OAuth sessions get agent internal memory tools"
+
 documentation:
   design_documents: 2
-  milestone_documents: 1
+  milestone_documents: 2
   pattern_documents: 0
-  task_documents: 5
+  task_documents: 6
 
 progress:
   planning: 100
@@ -79,6 +100,12 @@ progress:
   overall: 100
 
 recent_work:
+  - date: 2026-03-20
+    description: |
+      Completed task-6: Added { internal_type: 'agent' } as 3rd arg to
+      createRememberServer() in src/server.ts. Build passes. All OAuth
+      MCP sessions now get agent internal memory capabilities. M2 complete.
+
   - date: 2026-03-14
     description: |
       Implemented tasks 1-4: Project scaffolding, ProxyOAuthServerProvider
@@ -87,7 +114,8 @@ recent_work:
       Dockerfile for Cloud Run deployment.
 
 next_steps:
-  - "Task 5: E2E testing with Claude CLI"
+  - "Deploy to Cloud Run (push to trigger Cloud Build)"
+  - "E2E verify: connect via Claude CLI, call remember_create_internal_memory"
 
 notes:
   - "Used MCP SDK's ProxyOAuthServerProvider — proxies OAuth to agentbase.me, no custom auth logic needed"
